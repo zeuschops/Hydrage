@@ -1,13 +1,14 @@
 import json
+from datetime import datetime
 import discord
 from discord.ext import commands
 
-from resources.StaticVariableSpace import StaticVariableSpace
+from resources.DatabaseHandler import DatabaseHandler
 
 class Administrator(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, dbh:DatabaseHandler):
         self.bot = bot
-        self.svs = StaticVariableSpace()
+        self.dbh = dbh
 
     @commands.command()
     async def clean(self, ctx, count:int):
@@ -25,15 +26,5 @@ class Administrator(commands.Cog):
 
     @commands.command()
     async def setLog(self, ctx, to_channel:discord.TextChannel):
-        if 'logging' in self.svs.keys():
-            if ctx.guild.id not in self.svs.get('logging'):
-                self.svs.get('logging').update({ctx.guild.id:to_channel.id})
-                await ctx.channel.send('Set logging channel to %s!' % to_channel.mention)
-            else:
-                old = self.svs.get('logging')[ctx.guild.id]
-                self.svs.get('logging')[ctx.guild.id] = to_channel.id
-                await ctx.channel.send('Switch from channel %s to %s!' % (old.mention, to_channel.mention))
-        else:
-            self.svs.set('logging', {})
-            self.svs.get('logging').update({ctx.guild.id:to_channel.id})
-        self.svs.save()
+        self.dbh.set_guild_logging_channel(to_channel.guild.id, to_channel.id, datetime.now())
+        await ctx.send("Set logging channel to %s" % to_channel.mention)
