@@ -35,6 +35,15 @@ class DatabaseHandler:
         self.sql = sqlite.connect(file)
         self.cur = self.sql.cursor()
     
+    def convert_data_to_dict(headers:list[str], data:list[list[str]]):
+        if len(headers) == len(data[0]):
+            to_return = []
+            for i in range(len(data)):
+                to_return.append({})
+                for j in range(len(headers)):
+                    to_return[-1].update({headers[j]:data[i][j]})
+            return to_return
+
     def get_token(self, service:str) -> str:
         self.cur.execute("SELECT token FROM tokens WHERE service_name=\"%s\"" % service)
         resp = self.cur.fetchone()
@@ -45,12 +54,12 @@ class DatabaseHandler:
         resp = self.cur.fetchone()
         return len(resp) > 0
     
-    def get_guild_logging_channel(self, guild_id:str) -> str:
+    def get_guild_logging_channel(self, guild_id:str):
         self.cur.execute("SELECT * FROM event_view WHERE name=\"enabled logging in guild\" AND guild_id=\"%s\" ORDER BY date DESC" % guild_id)
         resp = self.cur.fetchone()
         if len(resp) > 0:
             return resp[2]
-        return ""
+        return None
     
     def set_guild_logging_channel(self, guild_id:str, channel_id:str, date:datetime):
         self.cur.execute("INSERT INTO event_history(id, event_type, guild_id, channel_id, is_voice_channel, is_private_message, date) VALUES ((SELECT count(*)+1 FROM event_history), %i, \"%s\", \"%s\", False, False, \"%s\")" % (DatabaseEventType.enabled_logging_in_guild.value, guild_id, channel_id, date.strftime("%Y-%m-%d %H:%M:%S")))
@@ -65,8 +74,9 @@ class DatabaseHandler:
         self.sql.commit()
         self.cur = self.sql.cursor()
     
-    #TODO Build and Enum or similar for python events
     def new_event(self, event_type:DatabaseEventType, guild_id:str, channel_id:str, is_voice_channel:bool, is_private_message:bool, date:datetime):
+        self.cur.execute("SELECT * FROM event_history")
+        headers = self.cur.description
         self.cur.execute("INSERT INTO event_history(id, event_type, guild_id, channel_id, is_voice_channel, is_private_message, date) VALUES ((SELECT count(*)+1 FROM event_history), %i, \"%s\",\"%s\",\"%s\",\"%s\",\"%s\")" % (event_type.value, guild_id, channel_id, is_voice_channel, is_private_message, date.strftime("%Y-%m-%d %H:%M:%S")))
         self.sql.commit()
         self.cur = self.sql.cursor()
@@ -92,3 +102,8 @@ class DatabaseHandler:
         for i in range(len(headers)):
             to_return.update({headers[i]: response[i]})
         return to_return
+    
+    def delete_message(self, id:str, guild_id:str):
+        self.cur.execute("DELETE FROM messages WHERE id=\"%s\" AND guild_id=\"%s\"" % (id, guild_id))
+        self.sql.commit()
+        self.cur = self.sql.cursor()

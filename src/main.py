@@ -1,6 +1,7 @@
 import os
 import json
 import asyncio
+import requests
 from datetime import datetime
 import discord
 from discord.ext import commands
@@ -50,19 +51,19 @@ async def on_message_edit(before, after):
 
 @bot.event
 async def on_message_delete(message):
-    guild_channel = dbh.get_guild_logging_channel(message.guild.id)
-    if guild_channel is not None:
-        guild_channel = int(guild_channel)
-        name = message.author.nick
-        if type(name) is type(None):
-            name = message.author.name
-        name += "#%s" % message.author.discriminator
-        embed = discord.Embed(color=discord.Colour.red())
-        embed.add_field(name="Deleted Message", value=message.content, inline=False)
-        embed.add_field(name="Message ID", value=message.id, inline=False)
-        embed.set_author(name=name)
-        channel = message.guild.get_channel(int(guild_channel))
-        await channel.send('', embed=embed)
+    # guild_channel = dbh.get_guild_logging_channel(message.guild.id)
+    # if guild_channel is not None:
+    #     guild_channel = int(guild_channel)
+    #     name = message.author.nick
+    #     if type(name) is type(None):
+    #         name = message.author.name
+    #     name += "#%s" % message.author.discriminator
+    #     embed = discord.Embed(color=discord.Colour.red())
+    #     embed.add_field(name="Deleted Message", value=message.content, inline=False)
+    #     embed.add_field(name="Message ID", value=message.id, inline=False)
+    #     embed.set_author(name=name)
+    #     channel = message.guild.get_channel(int(guild_channel))
+    #     #await channel.send('', embed=embed)
         dbh.new_event(DatabaseEventType.message_deleted, message.guild.id, message.channel.id, False, False, datetime.now())
     
 @bot.event
@@ -72,9 +73,9 @@ async def on_raw_message_delete(payload):
         guild_channel = int(guild_channel)
         msg = dbh.get_message(str(payload.message_id), str(payload.guild_id))
         if type(msg) is not type(None):
-            embed = discord.Embed(color=discord.Colour.red(), title="Old message deleted")
-            embed.add_field(name="Deleted Message", value="%s" % msg["content"])
-            embed.set_author(name="ID: %s" % msg['author_id'])
+            embed = discord.Embed(color=discord.Colour.red(), title="Message deleted")
+            embed.add_field(name="Message content", value="%s" % msg["content"])
+            embed.set_author(name="Author ID %s" % msg['author_id'])
             channel = bot.get_channel(guild_channel)
             await channel.send('', embed=embed)
         else:
@@ -84,6 +85,7 @@ async def on_raw_message_delete(payload):
             channel = bot.get_channel(guild_channel)
             await channel.send('', embed=embed)
         dbh.new_event(DatabaseEventType.message_deleted, payload.message_id, payload.channel_id, False, False, datetime.now())
+        dbh.delete_message(payload.message_id, payload.guild_id)
 
 @bot.event
 async def on_member_join(member):
@@ -127,6 +129,14 @@ async def on_guild_remove(guild):
 @bot.command()
 async def ping(ctx):
     await ctx.channel.send(str(int(round(bot.latency * 1000,0))) + " ms", delete_after=15)
+
+@bot.command()
+async def urlcheck(ctx, url:str):
+    req = requests.get(url)
+    if req.url.lower() in url.lower():
+        await ctx.channel.send("Link is not shortened!")
+    else:
+        await ctx.channel.send("Link is shortened. Source URL is " + req.url)
 
 @bot.command()
 async def invite(ctx):
