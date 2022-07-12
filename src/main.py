@@ -51,19 +51,19 @@ async def on_message_edit(before, after):
 
 @bot.event
 async def on_message_delete(message):
-    # guild_channel = dbh.get_guild_logging_channel(message.guild.id)
-    # if guild_channel is not None:
-    #     guild_channel = int(guild_channel)
-    #     name = message.author.nick
-    #     if type(name) is type(None):
-    #         name = message.author.name
-    #     name += "#%s" % message.author.discriminator
-    #     embed = discord.Embed(color=discord.Colour.red())
-    #     embed.add_field(name="Deleted Message", value=message.content, inline=False)
-    #     embed.add_field(name="Message ID", value=message.id, inline=False)
-    #     embed.set_author(name=name)
-    #     channel = message.guild.get_channel(int(guild_channel))
-    #     #await channel.send('', embed=embed)
+    guild_channel = dbh.get_guild_logging_channel(message.guild.id)
+    if guild_channel is not None:
+        guild_channel = int(guild_channel)
+        name = message.author.nick
+        if type(name) is type(None):
+            name = message.author.name
+        name += "#%s" % message.author.discriminator
+        embed = discord.Embed(color=discord.Colour.red())
+        embed.add_field(name="Deleted Message", value=message.content, inline=False)
+        embed.add_field(name="Message ID", value=message.id, inline=False)
+        embed.set_author(name=name)
+        channel = message.guild.get_channel(int(guild_channel))
+        await channel.send('', embed=embed)
         dbh.new_event(DatabaseEventType.message_deleted, message.guild.id, message.channel.id, False, False, datetime.now())
     
 @bot.event
