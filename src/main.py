@@ -75,7 +75,8 @@ async def on_raw_message_delete(payload):
         if type(msg) is not type(None):
             embed = discord.Embed(color=discord.Colour.red(), title="Message deleted")
             embed.add_field(name="Message content", value="%s" % msg["content"])
-            embed.set_author(name="Author ID %s" % msg['author_id'])
+            user = bot.get_user(msg['author_id'])
+            embed.set_author(name="Author - %s#%s" % (user.name, str(user.discriminator)), icon_url=user.avatar_url)
             channel = bot.get_channel(guild_channel)
             await channel.send('', embed=embed)
         else:
