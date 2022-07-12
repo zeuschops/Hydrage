@@ -81,7 +81,7 @@ async def on_raw_message_delete(payload):
             if type(user) is not type(None):
                 embed.set_author(name="Author - %s#%s" % (user.name, str(user.discriminator)), icon_url=user.avatar_url)
             else:
-                embed.set_author(name='Author ID: ' % msg['author_id'])
+                embed.set_author(name='Author ID: %s' % msg['author_id'])
             channel = bot.get_channel(guild_channel)
             await channel.send('', embed=embed)
         else:
