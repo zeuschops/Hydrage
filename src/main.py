@@ -158,7 +158,7 @@ async def on_guild_remove(guild):
 
 @bot.command()
 async def ping(ctx):
-    await ctx.channel.send(str(int(round(bot.latency * 1000,0))) + " ms", delete_after=15)
+    await ctx.channel.send(str(int(round(bot.latency * 1000,0))) + " ms")
 
 @bot.command()
 async def urlcheck(ctx, url:str):
