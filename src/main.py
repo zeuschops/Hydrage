@@ -15,7 +15,9 @@ intents = discord.Intents.default()
 intents.members = True
 intents.messages = True
 
-bot = commands.Bot(command_prefix="h!", intents=intents)
+string_time = "%d-%m-%Y %H:%M:%S"
+prefix = 'h!'
+bot = commands.Bot(command_prefix=prefix, intents=intents)
 dbh = DatabaseHandler("database.sqlite")
 
 @bot.event
@@ -43,7 +45,7 @@ async def on_message_edit(before, after):
         embed = discord.Embed(color=discord.Colour.orange())
         embed.add_field(name="Message before edit", value=before.content, inline=False)
         embed.add_field(name="Message after edit", value=after.content, inline=False)
-        embed.set_author(name=name)
+        embed.set_footer(text="%s | %s" % (name, after.edited_at.strftime(string_time)))
         channel = after.guild.get_channel(guild_channel)
         await channel.send('', embed=embed)
         dbh.new_event(DatabaseEventType.message_received, after.guild.id, after.channel.id, False, False, after.edited_at)
@@ -61,7 +63,7 @@ async def on_message_delete(message):
         embed = discord.Embed(color=discord.Colour.red())
         embed.add_field(name="Deleted Message", value=message.content, inline=False)
         embed.add_field(name="Message ID", value=message.id, inline=False)
-        embed.set_author(name=name)
+        embed.set_footer(text="%s | %s" % (name, datetime.now().strftime(string_time)))
         channel = message.guild.get_channel(int(guild_channel))
         await channel.send('', embed=embed)
         dbh.new_event(DatabaseEventType.message_deleted, message.guild.id, message.channel.id, False, False, datetime.now())
@@ -79,9 +81,9 @@ async def on_raw_message_delete(payload):
             if type(user) is type(None):
                 user = bot.get_guild(payload.guild_id).get_member(msg['author_id'])
             if type(user) is not type(None):
-                embed.set_author(name="Author - %s#%s" % (user.name, str(user.discriminator)), icon_url=user.avatar_url)
+                embed.set_footer(text="Author - %s#%s" % (user.name, str(user.discriminator)), icon_url=user.avatar_url)
             else:
-                embed.set_author(name='Author ID: %s' % msg['author_id'])
+                embed.set_footer(text='Author ID: %s' % msg['author_id'])
             channel = bot.get_channel(guild_channel)
             await channel.send('', embed=embed)
         else:
@@ -103,7 +105,7 @@ async def on_member_join(member):
             name = member.name
         name += "#%s" % member.discriminator
         embed = discord.Embed(color=discord.Colour.green(), title="User joined")
-        embed.set_author(name=name)
+        embed.set_footer(text="%s | %s" % (name, member.joined_at.strftime(string_time)))
         channel = member.guild.get_channel(guild_channel)
         await channel.send('', embed=embed)
         dbh.new_event(DatabaseEventType.member_joined, member.guild.id, "", False, False, member.joined_at)
@@ -118,7 +120,7 @@ async def on_member_remove(member):
             name = member.name
         name += "#%s" % member.discriminator
         embed = discord.Embed(color=discord.Colour.red(), title="User left server")
-        embed.set_author(name=name)
+        embed.set_footer(text=name)
         channel = member.guild.get_channel(guild_channel)
         await channel.send('', embed=embed)
         dbh.new_event(DatabaseEventType.member_banned, member.guild.id, "", False, False, datetime.now())
@@ -148,4 +150,8 @@ async def urlcheck(ctx, url:str):
 async def invite(ctx):
     await ctx.channel.send("Invite me to your server! https://discord.com/oauth2/authorize?client_id=%s&scope=bot&permissions=309668928" % bot.user.id)
 
-bot.run(dbh.get_token("discord"), bot=True)
+# @bot.command()
+# async def help(ctx, *input):
+#     user = ctx.
+
+bot.run(dbh.get_token("discord-beta"), bot=True)

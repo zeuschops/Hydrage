@@ -49,6 +49,16 @@ class DatabaseHandler:
         resp = self.cur.fetchone()
         return resp[0]
     
+    def get_owner(self) -> dict:
+        self.cur.execute("SELECT * FROM owner")
+        headers = [i[0] for i in self.cur.description]
+        resp = self.cur.fetchone()
+        to_return = {}
+        if len(resp) == len(headers):
+            for i in range(len(resp)):
+                to_return.update({headers[i]:resp[i]})
+        return to_return
+    
     def is_guild_logging(self, guild_id:str) -> bool:
         self.cur.execute("SELECT * FROM event_view WHERE name=\"enabled logging in guild\" AND guild_id=\"%s\"" % guild_id)
         resp = self.cur.fetchone()
@@ -62,6 +72,8 @@ class DatabaseHandler:
         return None
     
     def set_guild_logging_channel(self, guild_id:str, channel_id:str, date:datetime):
+        self.cur.execute("SELECT * FROM event_history")
+        headers = [i[0] for i in self.cur.description]
         self.cur.execute("INSERT INTO event_history(id, event_type, guild_id, channel_id, is_voice_channel, is_private_message, date) VALUES ((SELECT count(*)+1 FROM event_history), %i, \"%s\", \"%s\", False, False, \"%s\")" % (DatabaseEventType.enabled_logging_in_guild.value, guild_id, channel_id, date.strftime("%Y-%m-%d %H:%M:%S")))
 
     def add_server(self, id:str, owner_id:str, splash_url:str, banner_url:str, icon_url:str):
