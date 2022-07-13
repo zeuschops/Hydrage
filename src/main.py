@@ -9,6 +9,7 @@ from discord.ext import commands
 
 from commands.Music import Music
 from commands.Administrator import Administrator
+from commands.RiotGamesAPI import RiotGamesAPI
 from resources.DatabaseHandler import DatabaseHandler
 from resources.DatabaseHandler import DatabaseEventType
 
@@ -22,14 +23,16 @@ intents.members = True
 intents.messages = True
 
 string_time = "%d-%m-%Y %H:%M:%S"
-prefix = 'h!'
+prefix = 'h!' if not args.debug else 'hb!'
 bot = commands.Bot(command_prefix=prefix, intents=intents)
+bot.remove_command('help')
 dbh = DatabaseHandler("database.sqlite")
 
 @bot.event
 async def on_ready():
     bot.add_cog(Music(bot))
     bot.add_cog(Administrator(bot, dbh))
+    bot.add_cog(RiotGamesAPI(bot, dbh.get_token('riot-games')))
     print("Logged in as {0.user}".format(bot))
     print("\twith client id {0.user.id}".format(bot))
 
@@ -69,7 +72,9 @@ async def on_message_delete(message):
         embed = discord.Embed(color=discord.Colour.red())
         embed.add_field(name="Deleted Message", value=message.content, inline=False)
         embed.add_field(name="Message ID", value=message.id, inline=False)
-        embed.set_footer(text="%s | %s" % (name, datetime.now().strftime(string_time)))
+        embed.add_field(name="Channel", value=message.channel.mention)
+        avatar = message.author.avatar_url
+        embed.set_footer(text="%s | %s" % (name, datetime.now().strftime(string_time)), icon_url=avatar)
         channel = message.guild.get_channel(int(guild_channel))
         await channel.send('', embed=embed)
         dbh.new_event(DatabaseEventType.message_deleted, message.guild.id, message.channel.id, False, False, datetime.now())
@@ -87,8 +92,8 @@ async def on_raw_message_delete(payload):
                 if len(message.embeds) == 1:
                     if len(message.embeds[0].fields) >= 2:
                         for i in range(len(message.embeds[0].fields)):
-                            if "Message ID" in message.embeds.fields[i].name:
-                                if str(message.embeds[0].fields[1].value) in str(payload.message_id):
+                            if "Message ID" in message.embeds[0].fields[i].name:
+                                if str(message.embeds[0].fields[i].value) in str(payload.message_id):
                                     last_message = message
         if type(last_message) is type(None):
             if type(msg) is not type(None):
@@ -167,9 +172,55 @@ async def urlcheck(ctx, url:str):
 async def invite(ctx):
     await ctx.channel.send("Invite me to your server! https://discord.com/oauth2/authorize?client_id=%s&scope=bot&permissions=309668928" % bot.user.id)
 
-# @bot.command()
-# async def help(ctx, *input):
-#     user = ctx.
+@bot.command()
+async def github(ctx):
+    await ctx.channel.send("Check out the project on GitHub! https://github.com/zeuschops/Hydrage")
+
+@bot.command()
+async def update(ctx):
+    if ctx.message.author.id == 454598334448009216:
+        try:
+            await ctx.message.delete()
+        except:
+            await ctx.send("Cannot delete messages..", delete_after=5)
+            await asyncio.sleep(5)
+        await bot.close()
+
+@bot.command()
+async def help(ctx, *input):
+    user = ctx.message.author
+    embed = discord.Embed(color=discord.Color.blue())
+    if type(user) is discord.Member:
+        if user.guild_permissions.administrator:
+            embed.color = discord.Color.red()
+            embed.add_field(name='clean', value='Clears a given number of messages within the server', inline=False)
+            embed.add_field(name='setLog', value='Sets the logging channel for the server', inline=False)
+        if user.guild_permissions.manage_messages and not user.guild_permissions.administrator:
+            embed.add_field(name='clean', value='Clears a given number of messages within the server', inline=False)
+        if user.guild_permissions.connect or user.guild_permissions.administrator:
+            embed.add_field(name='join', value='Forces the bot to connect to your current music channel', inline=False)
+            embed.add_field(name='play', value='Plays a song from a YouTube, Vimeo, etc link, or searches for the song', inline=False)
+            embed.add_field(name='now', value='Displays currently playing music', inline=False)
+            embed.add_field(name='skip', value='Skips currently playing song', inline=False)
+            embed.add_field(name='stop', value='Stops playing all music in the queue, and clears the queue', inline=False)
+            embed.add_field(name='pause', value='Pauses currently playing song', inline=False)
+            embed.add_field(name='resume', value='Resumes the current song in the queue', inline=False)
+            embed.add_field(name='queue', value='Displays currently available songs', inline=False)
+            embed.add_field(name='shuffle', value='Shuffles current queue', inline=False)
+    if user.id == 454598334448009216:
+        embed.color = discord.Color.gold()
+        embed.add_field(name='update', value='Updates bot to latest main branch')
+    #Else: only add default commands that everyone can use with the bot (not all commands available, mind you!)
+    embed.add_field(name='summoner', value='Pulls summoner information for League of Legends', inline=False)
+    embed.add_field(name='champion', value='Gets the free champion rotation for the week in League of Legends', inline=False)
+    embed.add_field(name='recentMatch', value='Gets the most recent match for a given summoner in League of Legends in a suggested region', inline=False)
+    embed.add_field(name='matchforid', value='Gets a match in a specified region with a particular matchId from League of Legends', inline=False)
+    embed.add_field(name='riotregions', value='Displays all available regions to request data from Riot Games for League of Legends', inline=False)
+    embed.add_field(name='ping', value='Checks latency of the bot in milliseconds', inline=False)
+    embed.add_field(name='github', value='Provides a link to contribute to the source code for this bot', inline=False)
+    embed.add_field(name='urlcheck', value='Checks any URL to confirm that the URL is not shortened, and provides which URL this navigates to if it is', inline=False)
+    embed.set_footer(text='%s#%s | %s' % (ctx.message.author.name, ctx.message.author.discriminator, ctx.message.created_at.strftime(string_time)))
+    await ctx.send('', embed=embed)
 
 if args.debug:
     bot.run(dbh.get_token('discord-beta'), bot=True)
