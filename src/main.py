@@ -2,6 +2,7 @@ import os
 import json
 import asyncio
 import requests
+import argparse
 from datetime import datetime
 import discord
 from discord.ext import commands
@@ -10,6 +11,11 @@ from commands.Music import Music
 from commands.Administrator import Administrator
 from resources.DatabaseHandler import DatabaseHandler
 from resources.DatabaseHandler import DatabaseEventType
+
+argpar = argparse.ArgumentParser(prefix_chars="-")
+argpar.add_argument("-debug", action="store_true")
+args = argpar.parse_args()
+
 
 intents = discord.Intents.default()
 intents.members = True
@@ -74,25 +80,36 @@ async def on_raw_message_delete(payload):
     if guild_channel is not None:
         guild_channel = int(guild_channel)
         msg = dbh.get_message(str(payload.message_id), str(payload.guild_id))
-        if type(msg) is not type(None):
-            embed = discord.Embed(color=discord.Colour.red(), title="Message deleted")
-            embed.add_field(name="Message content", value="%s" % msg["content"])
-            user = bot.get_user(msg['author_id'])
-            if type(user) is type(None):
-                user = bot.get_guild(payload.guild_id).get_member(msg['author_id'])
-            if type(user) is not type(None):
-                embed.set_footer(text="Author - %s#%s" % (user.name, str(user.discriminator)), icon_url=user.avatar_url)
+        await asyncio.sleep(3)
+        last_message = None
+        async for message in bot.get_channel(guild_channel).history(limit=10):
+            if message.author == bot.user:
+                if len(message.embeds) == 1:
+                    if len(message.embeds[0].fields) >= 2:
+                        for i in range(len(message.embeds[0].fields)):
+                            if "Message ID" in message.embeds.fields[i].name:
+                                if str(message.embeds[0].fields[1].value) in str(payload.message_id):
+                                    last_message = message
+        if type(last_message) is type(None):
+            if type(msg) is not type(None):
+                embed = discord.Embed(color=discord.Colour.red(), title="Message deleted")
+                embed.add_field(name="Message content", value="%s" % msg["content"])
+                user = bot.get_user(msg['author_id'])
+                if type(user) is type(None):
+                    user = bot.get_guild(payload.guild_id).get_member(msg['author_id'])
+                if type(user) is not type(None):
+                    embed.set_footer(text="Author - %s#%s" % (user.name, str(user.discriminator)), icon_url=user.avatar_url)
+                else:
+                    embed.set_footer(text='Author ID: %s' % msg['author_id'])
+                channel = bot.get_channel(guild_channel)
+                await channel.send('', embed=embed)
             else:
-                embed.set_footer(text='Author ID: %s' % msg['author_id'])
-            channel = bot.get_channel(guild_channel)
-            await channel.send('', embed=embed)
-        else:
-            embed = discord.Embed(color=discord.Colour.red(), title="Old message deleted")
-            embed.add_field(name="Deleted Message", value="ID: %s" % payload.message_id)
-            embed.add_field(name="Deleted in Channel", value="ID: %s" % payload.channel_id)
-            channel = bot.get_channel(guild_channel)
-            await channel.send('', embed=embed)
-        dbh.new_event(DatabaseEventType.message_deleted, payload.message_id, payload.channel_id, False, False, datetime.now())
+                embed = discord.Embed(color=discord.Colour.red(), title="Old message deleted")
+                embed.add_field(name="Deleted Message", value="ID: %s" % payload.message_id)
+                embed.add_field(name="Deleted in Channel", value="ID: %s" % payload.channel_id)
+                channel = bot.get_channel(guild_channel)
+                await channel.send('', embed=embed)
+            dbh.new_event(DatabaseEventType.message_deleted, payload.message_id, payload.channel_id, False, False, datetime.now())
         dbh.delete_message(payload.message_id, payload.guild_id)
 
 @bot.event
@@ -154,4 +171,7 @@ async def invite(ctx):
 # async def help(ctx, *input):
 #     user = ctx.
 
-bot.run(dbh.get_token("discord"), bot=True)
+if args.debug:
+    bot.run(dbh.get_token('discord-beta'), bot=True)
+else:
+    bot.run(dbh.get_token("discord"), bot=True)
