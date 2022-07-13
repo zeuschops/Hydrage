@@ -188,6 +188,14 @@ async def update(ctx):
 
 @bot.command()
 async def help(ctx, *input):
+    commands = {
+        "clean": {
+            "description":"Clears a given number of messages within a channel",
+            "usage": prefix + "clean <numberOfMessages:int>"
+        },
+        
+    }
+
     user = ctx.message.author
     embed = discord.Embed(color=discord.Color.blue())
     if type(user) is discord.Member:

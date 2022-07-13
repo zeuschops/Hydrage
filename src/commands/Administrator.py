@@ -26,5 +26,9 @@ class Administrator(commands.Cog):
 
     @commands.command()
     async def setLog(self, ctx, to_channel:discord.TextChannel):
-        self.dbh.set_guild_logging_channel(to_channel.guild.id, to_channel.id, datetime.now())
-        await ctx.send("Set logging channel to %s" % to_channel.mention)
+        is_admin = ctx.message.author.guild_permissions.administrator
+        if is_admin:
+            self.dbh.set_guild_logging_channel(to_channel.guild.id, to_channel.id, datetime.now())
+            await ctx.send("Set logging channel to %s" % to_channel.mention)
+        else:
+            await ctx.send("You do not have the correct permissions to do that! Please contact your server admin (%s) to have that action completed." % ctx.guild.owner.mention)
