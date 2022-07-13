@@ -154,4 +154,4 @@ async def invite(ctx):
 # async def help(ctx, *input):
 #     user = ctx.
 
-bot.run(dbh.get_token("discord-beta"), bot=True)
+bot.run(dbh.get_token("discord"), bot=True)
