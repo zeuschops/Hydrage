@@ -191,42 +191,150 @@ async def help(ctx, *input):
     commands = {
         "clean": {
             "description":"Clears a given number of messages within a channel",
-            "usage": prefix + "clean <numberOfMessages:int>"
+            "usage": prefix + "clean <numberOfMessages:int>",
         },
-        
+        "setLog": {
+            "description":"Clears a given number of messages within the server",
+            "usage": prefix + "setLog <channel:discord.TextChannel>",
+        },
+        "join": {
+            "description":"Connects the bot to the voice channel you are in, and will error out if you are not in a voice channel",
+            "usage": prefix + "join",
+        },
+        "play": {
+            "description":"Plays a song, or searches for it depending on what is provided",
+            "usage": prefix + "play [*search | url:str]",
+        },
+        "now": {
+            "description":"Displays the currently playing song if anything is playing",
+            "usage": prefix + "now",
+        },
+        "skip": {
+            "description":"Skips the song that is currently playing",
+            "usage": prefix + "skip",
+        },
+        "stop": {
+            "description":"Stops playing all audio, and clears the queue",
+            "usage": prefix + "stop",
+        },
+        "pause": {
+            "description":"Pauses the audio that is currently playing",
+            "usage": prefix + "pause",
+        },
+        "resume": {
+            "description":"Resumes playing the audio in the queue",
+            "usage": prefix + "resume",
+        },
+        "queue": {
+            "description":"Displays the current audio queue",
+            "usage": prefix + "queue",
+        },
+        "shuffle": {
+            "description":"Shuffles the current queue",
+            "usage": prefix + "shuffle",
+        },
+        "update": {
+            "description":"Updates the bot to latest release",
+            "usage": prefix + "update",
+        },
+        "summoner": {
+            "description":"Fetches information about a summoner from Riot Games",
+            "usage": prefix + "summoner <riotRegion:str> <summonerName:str>",
+        },
+        "champion": {
+            "description":"Fetches the free rotation for this week",
+            "usage": prefix + "champion",
+        },
+        "recentMatch": {
+            "description":"Requests the most recent match data for a given summoner",
+            "usage": prefix + "recentMatch <riotRegion:str> <summonerName:str>",
+        },
+        "matchforid": {
+            "description":"Gets a match in a specified region with a particular matchId from League of Legends",
+            "usage": prefix + "matchforid <riotregion:str> <matchId:str>",
+        },
+        "riotregions": {
+            "description":"Fetches all available regions for making requests",
+            "usage": prefix + "riotregions",
+        },
+        "ping": {
+            "description":"Determines the discord bot's latency between it and Discord",
+            "usage": prefix + "ping",
+        },
+        "github": {
+            "description":"Gets the github URL where this project is published",
+            "usage": prefix + "github",
+        },
+        "urlcheck": {
+            "description":"Checks a URL to see if it forwards elsewhere on the internet",
+            "usage": prefix + "urlcheck <url:str>",
+        },
+    }
+
+    perms_lookup = {
+        'send_messages':{
+            'topic':'General',
+            'commands':[
+                'summoner',
+                'champion',
+                'recentMatch',
+                'matchforid',
+                'riotregions',
+                'ping',
+                'github',
+                'urlcheck'
+            ]
+        },
+        'connect':{
+            'topic':'Music',
+            'commands':[
+                'join',
+                'play',
+                'now',
+                'skip',
+                'stop',
+                'pause',
+                'resume',
+                'queue',
+                'shuffle'
+            ]
+        },
+        'administrator':{
+            'topic':'Administrator',
+            'commands':[
+                'setLog'
+            ]
+        },
+        'manage_messages':{
+            'topic':'Moderator',
+            'commands':[
+                'clean'
+            ]
+        }
     }
 
     user = ctx.message.author
+    owner_id = 454598334448009216
     embed = discord.Embed(color=discord.Color.blue())
-    if type(user) is discord.Member:
-        if user.guild_permissions.administrator:
-            embed.color = discord.Color.red()
-            embed.add_field(name='clean', value='Clears a given number of messages within the server', inline=False)
-            embed.add_field(name='setLog', value='Sets the logging channel for the server', inline=False)
-        if user.guild_permissions.manage_messages and not user.guild_permissions.administrator:
-            embed.add_field(name='clean', value='Clears a given number of messages within the server', inline=False)
-        if user.guild_permissions.connect or user.guild_permissions.administrator:
-            embed.add_field(name='join', value='Forces the bot to connect to your current music channel', inline=False)
-            embed.add_field(name='play', value='Plays a song from a YouTube, Vimeo, etc link, or searches for the song', inline=False)
-            embed.add_field(name='now', value='Displays currently playing music', inline=False)
-            embed.add_field(name='skip', value='Skips currently playing song', inline=False)
-            embed.add_field(name='stop', value='Stops playing all music in the queue, and clears the queue', inline=False)
-            embed.add_field(name='pause', value='Pauses currently playing song', inline=False)
-            embed.add_field(name='resume', value='Resumes the current song in the queue', inline=False)
-            embed.add_field(name='queue', value='Displays currently available songs', inline=False)
-            embed.add_field(name='shuffle', value='Shuffles current queue', inline=False)
-    if user.id == 454598334448009216:
+    if user.id == owner_id:
         embed.color = discord.Color.gold()
-        embed.add_field(name='update', value='Updates bot to latest main branch')
-    #Else: only add default commands that everyone can use with the bot (not all commands available, mind you!)
-    embed.add_field(name='summoner', value='Pulls summoner information for League of Legends', inline=False)
-    embed.add_field(name='champion', value='Gets the free champion rotation for the week in League of Legends', inline=False)
-    embed.add_field(name='recentMatch', value='Gets the most recent match for a given summoner in League of Legends in a suggested region', inline=False)
-    embed.add_field(name='matchforid', value='Gets a match in a specified region with a particular matchId from League of Legends', inline=False)
-    embed.add_field(name='riotregions', value='Displays all available regions to request data from Riot Games for League of Legends', inline=False)
-    embed.add_field(name='ping', value='Checks latency of the bot in milliseconds', inline=False)
-    embed.add_field(name='github', value='Provides a link to contribute to the source code for this bot', inline=False)
-    embed.add_field(name='urlcheck', value='Checks any URL to confirm that the URL is not shortened, and provides which URL this navigates to if it is', inline=False)
+    if len(input) == 0:
+        if type(user) is discord.Member:
+            for p in list(dict(user.guild_permissions)):
+                perm = dict(user.guild_permissions)[p]
+                if perm:
+                    if p in list(perms_lookup):
+                        embed.add_field(name=perms_lookup[p]['topic'], value='\n'.join(perms_lookup[p]['commands']))    
+        if user.id == owner_id:
+            embed.add_field(name='update', value='Updates bot to latest main branch', inline=False)
+    elif len(input) == 1:
+        if input[0] in list(commands):
+            embed.add_field(name='Description', value=commands[input[0]]['description'], inline=False)
+            embed.add_field(name='Usage', value=commands[input[0]]['usage'], inline=False)
+        else:
+            ctx.send("Invalid command passed. %s not found." % input[0])
+    else:
+        ctx.send("Invalid arguments passed. Please follow usage guide.\n    %shelp <command:Optional[str]>" % prefix)
     embed.set_footer(text='%s#%s | %s' % (ctx.message.author.name, ctx.message.author.discriminator, ctx.message.created_at.strftime(string_time)))
     await ctx.send('', embed=embed)
 
