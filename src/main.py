@@ -7,7 +7,7 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 
-from commands.Music import Music
+# from commands.Music import Music
 from commands.Administrator import Administrator
 from commands.RiotGamesAPI import RiotGamesAPI
 from resources.DatabaseHandler import DatabaseHandler
@@ -30,7 +30,7 @@ dbh = DatabaseHandler("database.sqlite")
 
 @bot.event
 async def on_ready():
-    bot.add_cog(Music(bot))
+    # bot.add_cog(Music(bot))
     bot.add_cog(Administrator(bot, dbh))
     bot.add_cog(RiotGamesAPI(bot, dbh.get_token('riot-games')))
     print("Logged in as {0.user}".format(bot))
@@ -197,42 +197,42 @@ async def help(ctx, *input):
             "description":"Clears a given number of messages within the server",
             "usage": prefix + "setLog <channel:discord.TextChannel>",
         },
-        "join": {
-            "description":"Connects the bot to the voice channel you are in, and will error out if you are not in a voice channel",
-            "usage": prefix + "join",
-        },
-        "play": {
-            "description":"Plays a song, or searches for it depending on what is provided",
-            "usage": prefix + "play [*search | url:str]",
-        },
-        "now": {
-            "description":"Displays the currently playing song if anything is playing",
-            "usage": prefix + "now",
-        },
-        "skip": {
-            "description":"Skips the song that is currently playing",
-            "usage": prefix + "skip",
-        },
-        "stop": {
-            "description":"Stops playing all audio, and clears the queue",
-            "usage": prefix + "stop",
-        },
-        "pause": {
-            "description":"Pauses the audio that is currently playing",
-            "usage": prefix + "pause",
-        },
-        "resume": {
-            "description":"Resumes playing the audio in the queue",
-            "usage": prefix + "resume",
-        },
-        "queue": {
-            "description":"Displays the current audio queue",
-            "usage": prefix + "queue",
-        },
-        "shuffle": {
-            "description":"Shuffles the current queue",
-            "usage": prefix + "shuffle",
-        },
+        # "join": {
+        #     "description":"Connects the bot to the voice channel you are in, and will error out if you are not in a voice channel",
+        #     "usage": prefix + "join",
+        # },
+        # "play": {
+        #     "description":"Plays a song, or searches for it depending on what is provided",
+        #     "usage": prefix + "play [*search | url:str]",
+        # },
+        # "now": {
+        #     "description":"Displays the currently playing song if anything is playing",
+        #     "usage": prefix + "now",
+        # },
+        # "skip": {
+        #     "description":"Skips the song that is currently playing",
+        #     "usage": prefix + "skip",
+        # },
+        # "stop": {
+        #     "description":"Stops playing all audio, and clears the queue",
+        #     "usage": prefix + "stop",
+        # },
+        # "pause": {
+        #     "description":"Pauses the audio that is currently playing",
+        #     "usage": prefix + "pause",
+        # },
+        # "resume": {
+        #     "description":"Resumes playing the audio in the queue",
+        #     "usage": prefix + "resume",
+        # },
+        # "queue": {
+        #     "description":"Displays the current audio queue",
+        #     "usage": prefix + "queue",
+        # },
+        # "shuffle": {
+        #     "description":"Shuffles the current queue",
+        #     "usage": prefix + "shuffle",
+        # },
         "update": {
             "description":"Updates the bot to latest release",
             "usage": prefix + "update",
@@ -285,20 +285,20 @@ async def help(ctx, *input):
                 'urlcheck'
             ]
         },
-        'connect':{
-            'topic':'Music',
-            'commands':[
-                'join',
-                'play',
-                'now',
-                'skip',
-                'stop',
-                'pause',
-                'resume',
-                'queue',
-                'shuffle'
-            ]
-        },
+        # 'connect':{
+        #     'topic':'Music',
+        #     'commands':[
+        #         'join',
+        #         'play',
+        #         'now',
+        #         'skip',
+        #         'stop',
+        #         'pause',
+        #         'resume',
+        #         'queue',
+        #         'shuffle'
+        #     ]
+        # },
         'administrator':{
             'topic':'Administrator',
             'commands':[
